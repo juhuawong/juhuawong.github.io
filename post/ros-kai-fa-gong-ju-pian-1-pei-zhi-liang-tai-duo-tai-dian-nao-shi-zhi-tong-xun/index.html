@@ -1,22 +1,103 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://juhuawong.github.io</id>
-    <title>Jason&apos;s Notes</title>
-    <updated>2020-05-15T15:34:28.174Z</updated>
-    <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://juhuawong.github.io"/>
-    <link rel="self" href="https://juhuawong.github.io/atom.xml"/>
-    <subtitle>记录工作心得</subtitle>
-    <logo>https://juhuawong.github.io/images/avatar.png</logo>
-    <icon>https://juhuawong.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, Jason&apos;s Notes</rights>
-    <entry>
-        <title type="html"><![CDATA[ROS开发工具篇（1）——配置两台（多台）电脑使之通讯]]></title>
-        <id>https://juhuawong.github.io/post/ros-kai-fa-gong-ju-pian-1-pei-zhi-liang-tai-duo-tai-dian-nao-shi-zhi-tong-xun/</id>
-        <link href="https://juhuawong.github.io/post/ros-kai-fa-gong-ju-pian-1-pei-zhi-liang-tai-duo-tai-dian-nao-shi-zhi-tong-xun/">
-        </link>
-        <updated>2020-05-15T15:21:55.000Z</updated>
-        <content type="html"><![CDATA[<h2 id="0-总览">0 总览</h2>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ROS开发工具篇（1）——配置两台（多台）电脑使之通讯 | Jason&#39;s Notes</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://juhuawong.github.io/favicon.ico?v=1589556835060">
+<link rel="stylesheet" href="https://juhuawong.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="0 总览
+最近的项目中基于Linux+ROS组合开发相关的功能，碰到在2台电脑之间进行ROS message信息交换的需要，现简单记录一下我实现的过程。
+目标：
+在2台电脑之间实现ROS数据通讯，例如在主机运行了roscore以后，在从机中..." />
+    <meta name="keywords" content="ROS" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://juhuawong.github.io">
+        <img src="https://juhuawong.github.io/images/avatar.png?v=1589556835060" class="site-logo">
+        <h1 class="site-title">Jason&#39;s Notes</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      记录工作心得
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://juhuawong.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ROS开发工具篇（1）——配置两台（多台）电脑使之通讯</h2>
+            <div class="post-date">2020-05-15</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="0-总览">0 总览</h2>
 <p>最近的项目中基于Linux+ROS组合开发相关的功能，碰到在2台电脑之间进行ROS message信息交换的需要，现简单记录一下我实现的过程。</p>
 <h3 id="目标">目标：</h3>
 <p>在2台电脑之间实现ROS数据通讯，例如在主机运行了roscore以后，在从机中能接收到主机的ROS message。</p>
@@ -72,6 +153,45 @@
 <figure data-type="image" tabindex="3"><img src="https://i.loli.net/2020/05/15/yC2Pvxnf4MBcWG8.png" alt="ssh登录" loading="lazy"></figure>
 <figure data-type="image" tabindex="4"><img src="https://i.loli.net/2020/05/15/Dl8Lmf2ybIwJohc.png" alt="ssh登录成功" loading="lazy"></figure>
 <p>以上，就可以把主机装车，传感器都接上，在从机上愉快敲代码了，下一步讲配合vscode在线调试程序。</p>
-]]></content>
-    </entry>
-</feed>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://juhuawong.github.io/tag/tYt4f2Zke/" class="tag">
+                    ROS
+                  </a>
+                
+              </div>
+            
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
