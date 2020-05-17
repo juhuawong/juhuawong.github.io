@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://juhuawong.github.io</id>
     <title>Jason&apos;s Notes</title>
-    <updated>2020-05-15T15:34:28.174Z</updated>
+    <updated>2020-05-17T02:54:31.495Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://juhuawong.github.io"/>
     <link rel="self" href="https://juhuawong.github.io/atom.xml"/>
@@ -10,6 +10,58 @@
     <logo>https://juhuawong.github.io/images/avatar.png</logo>
     <icon>https://juhuawong.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Jason&apos;s Notes</rights>
+    <entry>
+        <title type="html"><![CDATA[ROS之多线程的使用]]></title>
+        <id>https://juhuawong.github.io/post/ros-zhi-duo-xian-cheng-de-shi-yong/</id>
+        <link href="https://juhuawong.github.io/post/ros-zhi-duo-xian-cheng-de-shi-yong/">
+        </link>
+        <updated>2020-05-17T02:51:45.000Z</updated>
+        <content type="html"><![CDATA[<p>完成日期：2020-05-16</p>
+<h2 id="0-概述">0 概述</h2>
+<h3 id="1背景">（1）背景</h3>
+<p>在初学ROS的时候，官方wiki上常用2种方式进入循环（<code>spin()</code>和<code>spinOnce()</code>)，定时调用我们注册的回调函数，在回调函数中更新数据。假设一个场景：</p>
+<p>一个控制或者融合模块，接收3个传感器的数据并需要将处理后的数据通过Topic发出，其中有1个传感器的更新周期比较大。</p>
+<p>如果使用单线程的<code>spin()</code>或者<code>spinOnce()</code>方法对回调函数进行控制，会拖慢整个系统的运行速度，可以自行做实验验证，每个回调函数中使用<code>sleep()</code>方法延时1s，观察整个系统的输出。</p>
+<h3 id="2多线程的使用">（2）多线程的使用</h3>
+<p>多线程的方式可以解决上述问题，ROS做了大量的工作，使我们可以通过2种方式方式开启多个线程：</p>
+<pre><code class="language-c++">ros::MultiThreadedSpinner
+ros::AsyncSpinner
+</code></pre>
+<h2 id="1-rosmultithreadedspinner">1 <strong>ros::MultiThreadedSpinner</strong></h2>
+<p><code>MultiThreadedSpinner</code>类似于<code>ros::spin()</code>，在构造过程中可以指定它所用线程数，但如果不指定线程数或者线程数设置为0，它将在每个cpu内核开辟一个线程。</p>
+<p>基本的使用方法：</p>
+<pre><code class="language-c++">ros::MultiThreadedSpinner spinner(4); // Use 4 threads 
+spinner.spin(); //spin() will not return until the node has been shutdown
+</code></pre>
+<p>使用此方法需要注意的是<code>spinner.spin()</code>后面的代码将不会再执行，因此后面放了逻辑代码也不会执行了。</p>
+<h2 id="2-rosasyncspinner">2 <strong>ros::AsyncSpinner</strong></h2>
+<p>一个更好的选择是<code>AsyncSpinner</code>,与阻塞型的<code>spin()</code>不同，它有<code>start()</code>和<code>stop()</code>方法，并且再销毁的时候自动停止，与上面的 <code>MultiThreadedSpinner</code> 等价的例子：</p>
+<pre><code class="language-C++">ros::AsyncSpinner spinner(4); // Use 4 threads
+spinner.start();
+ros::waitForShutdown();
+</code></pre>
+<h2 id="3-我常用的方式">3 我常用的方式</h2>
+<p>wiki上只介绍到上面的例子，按照上面的例子可以达到多线程接收的目的，但是还需要发送Topic，可以按照下面的方法实现：</p>
+<pre><code class="language-c++">ros::AsyncSpinner spinner(4); // Use 4 threads
+spinner.start();
+//上面会开启4个线程，且线程已经开始工作，下面就是在主线程中循环发送消息
+ros::Rate loop_rate(100);
+while(ros::ok())
+{
+    publishMessage();//需要进行逻辑处理的函数，本处以发送消息为例
+    loop_rate.sleep();
+}
+</code></pre>
+<p>另外，还可以自己封装类，类中还可以包含线程。</p>
+<h2 id="4-参考">4 参考</h2>
+<blockquote>
+<ol>
+<li>[http://wiki.ros.org/roscpp/Overview/Callbacks%20and%20Spinning](http://wiki.ros.org/roscpp/Overview/Callbacks and Spinning)</li>
+<li>https://blog.csdn.net/tobebest_lah/article/details/103050076</li>
+</ol>
+</blockquote>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[ROS开发工具篇（1）——配置两台（多台）电脑使之通讯]]></title>
         <id>https://juhuawong.github.io/post/ros-kai-fa-gong-ju-pian-1-pei-zhi-liang-tai-duo-tai-dian-nao-shi-zhi-tong-xun/</id>

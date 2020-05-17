@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ROS之多线程的使用 | Jason&#39;s Notes</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://juhuawong.github.io/favicon.ico?v=1589684056479">
+<link rel="stylesheet" href="https://juhuawong.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="完成日期：2020-05-16
+0 概述
+（1）背景
+在初学ROS的时候，官方wiki上常用2种方式进入循环（spin()和spinOnce())，定时调用我们注册的回调函数，在回调函数中更新数据。假设一个场景：
+一个控制或者融合模块，接收..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://juhuawong.github.io">
+        <img src="https://juhuawong.github.io/images/avatar.png?v=1589684056479" class="site-logo">
+        <h1 class="site-title">Jason&#39;s Notes</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      记录工作心得
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://juhuawong.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ROS之多线程的使用</h2>
+            <div class="post-date">2020-05-17</div>
+            
+            <div class="post-content" v-pre>
+              <p>完成日期：2020-05-16</p>
+<h2 id="0-概述">0 概述</h2>
+<h3 id="1背景">（1）背景</h3>
+<p>在初学ROS的时候，官方wiki上常用2种方式进入循环（<code>spin()</code>和<code>spinOnce()</code>)，定时调用我们注册的回调函数，在回调函数中更新数据。假设一个场景：</p>
+<p>一个控制或者融合模块，接收3个传感器的数据并需要将处理后的数据通过Topic发出，其中有1个传感器的更新周期比较大。</p>
+<p>如果使用单线程的<code>spin()</code>或者<code>spinOnce()</code>方法对回调函数进行控制，会拖慢整个系统的运行速度，可以自行做实验验证，每个回调函数中使用<code>sleep()</code>方法延时1s，观察整个系统的输出。</p>
+<h3 id="2多线程的使用">（2）多线程的使用</h3>
+<p>多线程的方式可以解决上述问题，ROS做了大量的工作，使我们可以通过2种方式方式开启多个线程：</p>
+<pre><code class="language-c++">ros::MultiThreadedSpinner
+ros::AsyncSpinner
+</code></pre>
+<h2 id="1-rosmultithreadedspinner">1 <strong>ros::MultiThreadedSpinner</strong></h2>
+<p><code>MultiThreadedSpinner</code>类似于<code>ros::spin()</code>，在构造过程中可以指定它所用线程数，但如果不指定线程数或者线程数设置为0，它将在每个cpu内核开辟一个线程。</p>
+<p>基本的使用方法：</p>
+<pre><code class="language-c++">ros::MultiThreadedSpinner spinner(4); // Use 4 threads 
+spinner.spin(); //spin() will not return until the node has been shutdown
+</code></pre>
+<p>使用此方法需要注意的是<code>spinner.spin()</code>后面的代码将不会再执行，因此后面放了逻辑代码也不会执行了。</p>
+<h2 id="2-rosasyncspinner">2 <strong>ros::AsyncSpinner</strong></h2>
+<p>一个更好的选择是<code>AsyncSpinner</code>,与阻塞型的<code>spin()</code>不同，它有<code>start()</code>和<code>stop()</code>方法，并且再销毁的时候自动停止，与上面的 <code>MultiThreadedSpinner</code> 等价的例子：</p>
+<pre><code class="language-C++">ros::AsyncSpinner spinner(4); // Use 4 threads
+spinner.start();
+ros::waitForShutdown();
+</code></pre>
+<h2 id="3-我常用的方式">3 我常用的方式</h2>
+<p>wiki上只介绍到上面的例子，按照上面的例子可以达到多线程接收的目的，但是还需要发送Topic，可以按照下面的方法实现：</p>
+<pre><code class="language-c++">ros::AsyncSpinner spinner(4); // Use 4 threads
+spinner.start();
+//上面会开启4个线程，且线程已经开始工作，下面就是在主线程中循环发送消息
+ros::Rate loop_rate(100);
+while(ros::ok())
+{
+    publishMessage();//需要进行逻辑处理的函数，本处以发送消息为例
+    loop_rate.sleep();
+}
+</code></pre>
+<p>另外，还可以自己封装类，类中还可以包含线程。</p>
+<h2 id="4-参考">4 参考</h2>
+<blockquote>
+<ol>
+<li>[http://wiki.ros.org/roscpp/Overview/Callbacks%20and%20Spinning](http://wiki.ros.org/roscpp/Overview/Callbacks and Spinning)</li>
+<li>https://blog.csdn.net/tobebest_lah/article/details/103050076</li>
+</ol>
+</blockquote>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://juhuawong.github.io/post/ros-kai-fa-gong-ju-pian-1-pei-zhi-liang-tai-duo-tai-dian-nao-shi-zhi-tong-xun/">
+                  <h3 class="post-title">
+                    ROS开发工具篇（1）——配置两台（多台）电脑使之通讯
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
